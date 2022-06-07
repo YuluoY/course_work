@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyl.dao.TeacherDao">
+    <resultMap id="infoMap" type="HashMap">
+        <result column="teacher_id" property="teacherId"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="course_id" property="courseId"/>
+        <result column="student_id" property="studentId"/>
+        <result column="school_name" property="school"/>
+        <result column="school_id" property="schoolId"/>
+    </resultMap>
+    <!-- sql标签与语句 -->
+    <select id="findTeacherToSchool" resultMap="infoMap">
+        SELECT tb_teacher.id as tId, tb_school.id as sId
+        FROM tb_teacher,
+             tb_school
+        WHERE tb_teacher.school_id = tb_school.id
+        ORDER BY tb_teacher.id
+    </select>
+    <select id="findCourseList" resultMap="infoMap">
+        SELECT c.*, COUNT(s.name) as scount
+        FROM tb_course as c
+                 LEFT JOIN tb_teacher as t on t.id = c.teacher_id
+                 LEFT JOIN tb_sele_course as sc on sc.course_id = c.id
+                 LEFT JOIN tb_student as s on s.id = sc.student_id
+        WHERE t.id = #{id}
+        GROUP BY c.id
+    </select>
+
+    <select id="findSelectedCourseStudents" resultMap="infoMap">
+        SELECT s.*, sc.score, c.name as cname, c.type
+        FROM tb_sele_course as sc
+                 LEFT JOIN tb_student as s on s.id = sc.student_id
+                 LEFT JOIN tb_course as c on c.id = sc.course_id
+                 LEFT JOIN tb_teacher as t on t.id = #{tId}
+        WHERE c.id = #{cId}
+        GROUP BY s.id
+    </select>
+
+    <update id="reviewCourse">
+        update tb_sele_course as sc
+        set sc.score = #{score}
+        where sc.course_id = #{cId}
+          and sc.student_id = #{sId}
+    </update>
+    <insert id="insertRequiredCourse">
+        INSERT INTO tb_sele_course
+        VALUES (#{cId},
+                #{sId},
+                null)
+    </insert>
+</mapper>

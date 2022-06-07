@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyl.dao.CommonDao">
+    <!-- sql标签与语句 -->
+    <sql id="isTable">
+        <if test='identity == 0'>tb_user</if>
+        <if test='identity == 1'>tb_admin</if>
+        <if test='identity == 2'>tb_teacher</if>
+        <if test='identity == 3'>tb_student</if>
+        <if test='identity == 4'>tb_course</if>
+        <if test='identity == 5'>tb_class</if>
+        <if test='identity == 6'>tb_school</if>
+    </sql>
+
+    <resultMap id="infoMap" type="HashMap">
+        <result column="teacher_id" property="teacherId"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="course_id" property="courseId"/>
+        <result column="student_id" property="studentId"/>
+        <result column="school_name" property="school"/>
+        <result column="school_id" property="schoolId"/>
+    </resultMap>
+
+    <!-- 通用分页查询 -->
+    <select id="paginationQueryOperation" resultType="map">
+        select * from
+        <include refid="isTable"></include>
+        limit #{start}, #{end}
+    </select>
+    <!-- 通用id删除信息 -->
+    <delete id="deleteById">
+        delete from
+        <include refid="isTable"></include>
+        where id=#{id}
+    </delete>
+    <!-- 通用获取表中所有信息 -->
+    <select id="findAll" resultType="map">
+        select *
+        from
+        <include refid="isTable"></include>
+    </select>
+
+    <!-- 1、添加通用接口 -->
+    <insert id="addOperation" parameterType="map">
+        insert into
+        <include refid="isTable"></include>
+        <foreach collection="addMap" separator="," open="(" close=")" index="key">
+            ${key}
+        </foreach>
+        values
+        <foreach collection="addMap" separator="," open="(" close=")" item="value">
+            #{value}
+        </foreach>
+    </insert>
+
+    <!-- 2、删除通用接口 -->
+    <delete id="deleteOperation" parameterType="map">
+        delete from
+        <include refid="isTable"></include>
+        <where>
+            <foreach collection="delMap" index="key" item="value">
+                <if test="value != null">
+                    And ${key}=#{value}
+                </if>
+            </foreach>
+        </where>
+    </delete>
+
+
+    <!-- 3、更新通用接口 -->
+    <update id="updateOperation" parameterType="map">
+        update
+        <include refid="isTable"></include>
+        set
+        <foreach collection="updateMap" separator="," item="value" index="key">
+            <if test='value != null and key != "id"'>
+                ${key} = #{value}
+            </if>
+        </foreach>
+        where id=#{uniqueVal}
+    </update>
+
+    <!-- 4、查询student表通用接口 -->
+    <select id="selectOperation" parameterType="map" resultMap="infoMap">
+        select *
+        from
+        <include refid="isTable"></include>
+        <where>
+            <foreach collection="selectMap" item="value" index="key">
+                <if test="value!=null and value!=''">
+                    or ${key}=#{value}
+                </if>
+            </foreach>
+        </where>
+    </select>
+</mapper>

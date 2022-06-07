@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyl.dao.StudentDao">
+    <resultMap id="infoMap" type="HashMap">
+        <result column="teacher_id" property="teacherId"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="course_id" property="courseId"/>
+        <result column="student_id" property="studentId"/>
+    </resultMap>
+    <select id="findStuCourseById" resultMap="infoMap">
+        SELECT c.*, t.`name` as tname, s.school_name as school, sc.score
+        FROM tb_sele_course as sc
+                 LEFT JOIN tb_course as c on c.id = sc.course_id
+                 LEFT JOIN tb_teacher as t on t.id = c.teacher_id
+                 LEFT JOIN tb_school as s on s.id = t.school_id
+        WHERE sc.student_id = #{id}
+    </select>
+
+    <select id="findCurriculum" resultMap="infoMap">
+        SELECT c.*, t.name as tname, s.school_name as school
+        FROM tb_teacher as t
+                 inner JOIN tb_course as c on c.teacher_id = t.id
+                 INNER JOIN tb_school as s on s.id = t.school_id
+        WHERE c.type = '选修'
+    </select>
+    <select id="findStuToCourseMappingById" resultMap="infoMap">
+        SELECT s.id, sc.course_id
+        FROM tb_sele_course as sc
+                 INNER JOIN tb_student as s on s.id = sc.student_id
+        WHERE s.id = #{id}
+    </select>
+    <insert id="addCourse" parameterType="int">
+        INSERT into tb_sele_course
+            (student_id, course_id)
+        VALUES (#{sId}, #{cId})
+    </insert>
+    <delete id="cancelSelectedCourse" parameterType="int">
+        delete
+        from tb_sele_course
+        where tb_sele_course.student_id = #{sId}
+          and tb_sele_course.course_id = #{cId}
+    </delete>
+</mapper>

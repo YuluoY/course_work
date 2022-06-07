@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyl.dao.UserDao">
+    <resultMap id="infoMap" type="HashMap">
+        <result column="teacher_id" property="teacherId"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="course_id" property="courseId"/>
+        <result column="student_id" property="studentId"/>
+        <result column="school_name" property="school"/>
+        <result column="school_id" property="schoolId"/>
+    </resultMap>
+
+    <!-- sql标签与语句 -->
+    <sql id="isTable">
+        <if test='identity == 1'>tb_admin</if>
+        <if test='identity == 2'>tb_teacher</if>
+        <if test='identity == 3'>tb_student</if>
+    </sql>
+    <!-- sql标签与语句 -->
+    <select id="userLogin" resultType="user">
+        select *
+        from tb_user as u
+        where id = #{id}
+          and password = #{password}
+    </select>
+
+    <select id="userInfo" resultMap="infoMap">
+        <if test='identity == 1'>
+            SELECT a.*, u.token
+            FROM tb_user AS u
+            INNER JOIN tb_admin AS a ON a.id = u.id
+            WHERE a.id = 1001
+        </if>
+        <if test='identity == 2'>
+            SELECT t.*, u.token
+            FROM tb_teacher AS t
+            LEFT JOIN tb_user AS u ON u.id = t.id
+            WHERE t.id = #{id}
+        </if>
+        <if test='identity == 3'>
+            SELECT
+            s.*, u.token
+            FROM tb_student AS s
+            INNER JOIN tb_user AS u ON s.id = u.id
+            WHERE s.id = #{id}
+        </if>
+    </select>
+
+    <update id="updateUser" parameterType="User">
+        update tb_user
+        set
+        <if test="password != null and password!=''">
+            password=#{password},
+        </if>
+        <if test="identity!=0 and identity!=null">
+            identity=#{identity},
+        </if>
+        <if test='token!=0 and identity!=null and token!=""'>
+            token=#{token}
+        </if>
+        where id=#{id}
+    </update>
+
+    <select id="findAll" resultType="map">
+        SELECT tb_user.*,
+               tb_student.name       as sname,
+               tb_teacher.name       as tname,
+               tb_admin.name,
+               tb_student.age        as sAge,
+               tb_teacher.age        as tAge,
+               tb_admin.age,
+               tb_student.gender     as sGender,
+               tb_teacher.gender     as tGender,
+               tb_admin.gender,
+               tb_student.address,
+               tb_student.grade,
+               tb_school.school_name as school,
+               tb_teacher.title
+
+        FROM tb_user
+                 LEFT JOIN tb_student on tb_student.id = tb_user.id
+                 LEFT JOIN tb_teacher on tb_teacher.id = tb_user.id
+                 LEFT JOIN tb_admin on tb_admin.id = tb_user.id
+                 LEFT JOIN tb_school on tb_school.id = tb_teacher.school_id
+    </select>
+
+    <select id="findAllCourseInfo" resultMap="infoMap">
+        SELECT c.*, t.name AS tname, s.school_name, s.id as schoolId
+        FROM tb_course AS c
+                 LEFT JOIN tb_teacher AS t ON c.teacher_id = t.id
+                 LEFT JOIN tb_school as s on s.id = t.school_id
+    </select>
+
+    <select id="findAllSchool" resultMap="infoMap">
+        select *
+        from tb_school
+    </select>
+</mapper>
